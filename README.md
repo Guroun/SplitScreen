@@ -28,6 +28,14 @@ No more overlapping sounds:
 - Proximity-based audio muting  
 - When players are within 16 blocks, one instance mutes game audio  
 - Music, UI sounds, and master volume are preserved  
-- Fully automatic — no configuration required
+- Fully automatic — no configuration required  
+
+## Recommended Mods
+
+For the best experience, it’s recommended to use optimization and controller support mods:
+
+- **Sodium** — greatly improves performance and FPS  
+- **C2ME (Concurrent Chunk Management Engine)** — enhances world loading and reduces lag  
+- **Controllify** — adds full controller support for a smoother split-screen experience  
 
 Also, this mod is based on pcal43/splitscreen, thank you so much!
