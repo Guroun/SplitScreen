@@ -19,13 +19,16 @@ public class LocalPositionSync {
         UdpBridge.initialize();
 
         UdpBridge.setLayoutHandler((layoutName, positions, myIndex) -> {
-            if (!mod().isAutoSyncEnabled()) return;
-            String myPosition = positions[myIndex];
-            String currentMode = mod().getCurrentModeName();
-            if (!myPosition.equals(currentMode)) {
-                syslog().info("Applying layout " + layoutName + ": " + myPosition + " (instance #" + UdpBridge.getMyInstanceNumber() + ")");
-                mod().setModeByName(myPosition);
-            }
+            Minecraft mc = Minecraft.getInstance();
+            mc.execute(() -> {
+                if (!mod().isAutoSyncEnabled()) return;
+                String myPosition = positions[myIndex];
+                String currentMode = mod().getCurrentModeName();
+                if (!myPosition.equals(currentMode)) {
+                    syslog().info("Applying layout " + layoutName + ": " + myPosition + " (instance #" + UdpBridge.getMyInstanceNumber() + ")");
+                    mod().setModeByName(myPosition);
+                }
+            });
         });
 
         UdpBridge.setServerHandler(address -> {
