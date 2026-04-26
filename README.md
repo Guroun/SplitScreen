@@ -36,6 +36,6 @@ For the best experience, it’s recommended to use optimization and controller s
 
 - **Sodium** — greatly improves performance and FPS  
 - **C2ME (Concurrent Chunk Management Engine)** — enhances world loading and reduces lag  
-- **Controllify** — adds full controller support for a smoother split-screen experience  
+- **Controllify** — adds full controller support
 
 Also, this mod is based on pcal43/splitscreen, thank you so much!
