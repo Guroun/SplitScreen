@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.pcal.splitscreen.fabric.mixins",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "KeyboardHandlerMixin",
+    "KeyEventAccessor",
+    "IntegratedServerMixin",
+    "TitleScreenMixin",
+    "ButtonAccessor",
+    "SoundEngineMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
