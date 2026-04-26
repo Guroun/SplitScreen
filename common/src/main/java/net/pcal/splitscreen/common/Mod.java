@@ -161,10 +161,7 @@ public class Mod {
             this.layoutBroadcastListener.onLayoutSelected(layout);
         }
 
-        String primaryPosition = layout.getPrimaryPosition();
-        setModeByName(primaryPosition);
-
-        syslog().info("Applied layout: " + layout + " with position: " + primaryPosition);
+        syslog().info("Applied layout: " + layout);
     }
 
     public interface ModeChangeListener {
