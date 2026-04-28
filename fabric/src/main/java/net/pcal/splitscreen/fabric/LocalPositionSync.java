@@ -18,6 +18,8 @@ public class LocalPositionSync {
     public static void initialize() {
         UdpBridge.initialize();
 
+        mod().setInstanceCountProvider(() -> UdpBridge.getInstanceCount());
+
         UdpBridge.setLayoutHandler((layoutName, positions, myIndex) -> {
             Minecraft mc = Minecraft.getInstance();
             mc.execute(() -> {
@@ -36,19 +38,36 @@ public class LocalPositionSync {
         });
 
         UdpBridge.setOnInstanceJoined(() -> {
-            String lastLayout = mod().getLastLayoutName();
-            if (lastLayout != null && !lastLayout.isEmpty()) {
-                try {
-                    SplitscreenLayout layout = SplitscreenLayout.valueOf(lastLayout);
-                    broadcastLayout(layout);
-                    syslog().info("Auto-reposition: applying saved layout " + lastLayout);
-                } catch (IllegalArgumentException ignored) {}
+            int count = UdpBridge.getInstanceCount();
+            syslog().info("Instance joined, total: " + count);
+            if (count <= 1) {
+                mod().setModeByName("FULLSCREEN");
+            } else if (count >= 3) {
+                broadcastLayout(SplitscreenLayout.QUAD);
+            } else {
+                String lastLayout = mod().getLastLayoutName();
+                if (lastLayout != null && !lastLayout.isEmpty()) {
+                    try {
+                        SplitscreenLayout layout = SplitscreenLayout.valueOf(lastLayout);
+                        broadcastLayout(layout);
+                    } catch (IllegalArgumentException ignored) {
+                        broadcastLayout(SplitscreenLayout.HORIZONTAL);
+                    }
+                } else {
+                    broadcastLayout(SplitscreenLayout.HORIZONTAL);
+                }
             }
         });
 
         UdpBridge.setOnInstanceLeft(() -> {
-            mod().setModeByName("FULLSCREEN");
-            syslog().info("Auto-reposition: other instance left, switching to fullscreen");
+            int count = UdpBridge.getInstanceCount();
+            syslog().info("Instance left, total: " + count);
+            if (count <= 1) {
+                mod().setModeByName("FULLSCREEN");
+                syslog().info("Auto-reposition: alone, switching to fullscreen");
+            } else if (count >= 3) {
+                broadcastLayout(SplitscreenLayout.QUAD);
+            }
         });
 
         mod().setLayoutBroadcastListener(layout -> {

@@ -40,6 +40,19 @@ public class Mod {
     private boolean autoSyncEnabled = true;
     private ModeChangeListener modeChangeListener;
     private LayoutBroadcastListener layoutBroadcastListener;
+    private InstanceCountProvider instanceCountProvider;
+
+    public interface InstanceCountProvider {
+        int getInstanceCount();
+    }
+
+    public void setInstanceCountProvider(InstanceCountProvider provider) {
+        this.instanceCountProvider = provider;
+    }
+
+    public int getInstanceCount() {
+        return instanceCountProvider != null ? instanceCountProvider.getInstanceCount() : 1;
+    }
 
     public void onModInitialize(final Path configDirPath) {
         this.configPath = configDirPath.resolve("splitscreen.properties");

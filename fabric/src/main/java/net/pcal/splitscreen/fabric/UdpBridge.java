@@ -49,6 +49,7 @@ public class UdpBridge {
 
     public static UUID getMyId() { return myId; }
     public static int getMyInstanceNumber() { return myInstanceNumber; }
+    public static int getInstanceCount() { return instanceNumbers.size(); }
     public static void setLayoutHandler(LayoutHandler h) { layoutHandler = h; }
     public static void setServerHandler(ServerHandler h) { serverHandler = h; }
     public static void setOnInstanceJoined(Runnable r) { onInstanceJoined = r; }
@@ -122,6 +123,7 @@ public class UdpBridge {
                             sendToClient(sender, lastLayoutRaw);
                         }
                         syslog().info("UDP: Assigned instance #" + num + " to " + uuid.toString().substring(0, 8));
+                        broadcastCount();
                         if (onInstanceJoined != null) {
                             Minecraft.getInstance().execute(onInstanceJoined);
                         }
@@ -173,6 +175,18 @@ public class UdpBridge {
                 }
                 case "POS" -> processPosition(parts);
                 case "LAYOUT" -> processLayout(parts, false);
+                case "COUNT" -> {
+                    if (parts.length >= 2) {
+                        int c = Integer.parseInt(parts[1]);
+                        instanceNumbers.clear();
+                        instanceNumbers.put(myId, myInstanceNumber);
+                        for (int i = 0; i < c; i++) {
+                            if (i != myInstanceNumber) {
+                                instanceNumbers.put(UUID.randomUUID(), i);
+                            }
+                        }
+                    }
+                }
                 case "SERVER" -> {
                     if (parts.length >= 2) {
                         lastServerAddress = parts[1].isEmpty() ? null : parts[1];
@@ -309,6 +323,14 @@ public class UdpBridge {
         sendToServer("HEARTBEAT|" + myId);
     }
 
+    private static void broadcastCount() {
+        int count = instanceNumbers.size();
+        String msg = "COUNT|" + count;
+        for (SocketAddress client : clients) {
+            sendToClient(client, msg);
+        }
+    }
+
     public static void cleanupStaleInstances() {
         if (!isServer) return;
         long now = System.currentTimeMillis();
@@ -322,8 +344,11 @@ public class UdpBridge {
             }
             return false;
         });
-        if (removed && onInstanceLeft != null) {
-            Minecraft.getInstance().execute(onInstanceLeft);
+        if (removed) {
+            broadcastCount();
+            if (onInstanceLeft != null) {
+                Minecraft.getInstance().execute(onInstanceLeft);
+            }
         }
     }
 
