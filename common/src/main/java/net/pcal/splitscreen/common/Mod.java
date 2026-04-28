@@ -27,6 +27,7 @@ public class Mod {
     private static final String MODE_PROP = "mode";
     private static final String GAP_PROP = "gap";
     private static final String AUTO_SYNC_PROP = "autoSync";
+    private static final String LAST_LAYOUT_PROP = "lastLayout";
 
     private MinecraftWindow unpositionedWindow;
     private MinecraftWindow currentWindow;
@@ -72,6 +73,12 @@ public class Mod {
                 }
             }
             if (this.unpositionedWindow != null) {
+                for (int i = 0; i < modes.size(); i++) {
+                    if ("FULLSCREEN".equals(modes.get(i).getName())) {
+                        this.currentModeIndex = i;
+                        break;
+                    }
+                }
                 repositionWindow(this.unpositionedWindow);
                 unpositionedWindow = null;
             }
@@ -86,6 +93,12 @@ public class Mod {
             if (this.unpositionedWindow != null) syslog().error("Multiple windows created?");
             this.unpositionedWindow = requireNonNull(window);
         } else {
+            for (int i = 0; i < modes.size(); i++) {
+                if ("FULLSCREEN".equals(modes.get(i).getName())) {
+                    this.currentModeIndex = i;
+                    break;
+                }
+            }
             repositionWindow(window);
         }
     }
@@ -200,6 +213,15 @@ public class Mod {
         } catch (Exception e) {
             syslog().error(e);
         }
+    }
+
+    public String getLastLayoutName() {
+        return config.getProperty(LAST_LAYOUT_PROP);
+    }
+
+    public void saveLastLayout(String layoutName) {
+        config.setProperty(LAST_LAYOUT_PROP, layoutName);
+        saveConfig();
     }
 
     private void notifyModeChange() {

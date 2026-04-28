@@ -35,6 +35,22 @@ public class LocalPositionSync {
             currentServerAddress = address;
         });
 
+        UdpBridge.setOnInstanceJoined(() -> {
+            String lastLayout = mod().getLastLayoutName();
+            if (lastLayout != null && !lastLayout.isEmpty()) {
+                try {
+                    SplitscreenLayout layout = SplitscreenLayout.valueOf(lastLayout);
+                    broadcastLayout(layout);
+                    syslog().info("Auto-reposition: applying saved layout " + lastLayout);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        });
+
+        UdpBridge.setOnInstanceLeft(() -> {
+            mod().setModeByName("FULLSCREEN");
+            syslog().info("Auto-reposition: other instance left, switching to fullscreen");
+        });
+
         mod().setLayoutBroadcastListener(layout -> {
             broadcastLayout(layout);
         });
@@ -54,6 +70,7 @@ public class LocalPositionSync {
     }
 
     private static void broadcastLayout(SplitscreenLayout layout) {
+        mod().saveLastLayout(layout.name());
         UdpBridge.sendLayout(layout.name(), layout.getPositions());
 
         String[] positions = layout.getPositions();

@@ -1,5 +1,7 @@
 package net.pcal.splitscreen.fabric;
 
+import net.minecraft.client.Minecraft;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -34,6 +36,8 @@ public class UdpBridge {
 
     private static LayoutHandler layoutHandler;
     private static ServerHandler serverHandler;
+    private static Runnable onInstanceJoined;
+    private static Runnable onInstanceLeft;
 
     public interface LayoutHandler {
         void onLayoutReceived(String layoutName, String[] positions, int myIndex);
@@ -47,6 +51,8 @@ public class UdpBridge {
     public static int getMyInstanceNumber() { return myInstanceNumber; }
     public static void setLayoutHandler(LayoutHandler h) { layoutHandler = h; }
     public static void setServerHandler(ServerHandler h) { serverHandler = h; }
+    public static void setOnInstanceJoined(Runnable r) { onInstanceJoined = r; }
+    public static void setOnInstanceLeft(Runnable r) { onInstanceLeft = r; }
     public static String getLastServerAddress() { return lastServerAddress; }
 
     public static void initialize() {
@@ -116,6 +122,9 @@ public class UdpBridge {
                             sendToClient(sender, lastLayoutRaw);
                         }
                         syslog().info("UDP: Assigned instance #" + num + " to " + uuid.toString().substring(0, 8));
+                        if (onInstanceJoined != null) {
+                            Minecraft.getInstance().execute(onInstanceJoined);
+                        }
                     }
                 }
                 case "HEARTBEAT" -> {
@@ -303,6 +312,7 @@ public class UdpBridge {
     public static void cleanupStaleInstances() {
         if (!isServer) return;
         long now = System.currentTimeMillis();
+        boolean removed = false;
         instanceHeartbeats.entrySet().removeIf(e -> {
             if (now - e.getValue() > INSTANCE_TIMEOUT_MS && !e.getKey().equals(myId)) {
                 instanceNumbers.remove(e.getKey());
@@ -312,6 +322,9 @@ public class UdpBridge {
             }
             return false;
         });
+        if (removed && onInstanceLeft != null) {
+            Minecraft.getInstance().execute(onInstanceLeft);
+        }
     }
 
     public static void shutdown() {
